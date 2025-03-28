@@ -2,6 +2,8 @@ from django.shortcuts import render
 from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django.utils.timezone import now
+from django.db.models import Q
 
 from .models import MembershipType, Member, Attendance
 from .serializers import MembershipTypeSerializer, MemberSerializer, AttendanceSerializer
@@ -28,6 +30,13 @@ class MemberViewSet(viewsets.ModelViewSet):
 
         try:
             member = Member.objects.get(barcode=barcode)
+            has_attended_today = Attendance.objects.filter(
+                member=member, timestamp__date=now().date()
+            ).exists()
+
+            if has_attended_today:
+                return Response({"error": "Member has already attended a session today!"}, status=status.HTTP_400_BAD_REQUEST)
+
 
             # Check if the member has credits left
             if member.credit and member.credit > 0:
@@ -47,11 +56,21 @@ class MemberViewSet(viewsets.ModelViewSet):
 
         except Member.DoesNotExist:
             return Response({"error": "Member not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+
+    @action(detail=False, methods=['get'])
+    def low_credit_members(self, request):
+        """Fetch members with 2 or fewer session credits left"""
+        filtered_members = Member.objects.filter(credit__lte=2)  # Filter members with credit ≤ 2
+        serializer = self.get_serializer(filtered_members, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
         
 
 class AttendanceViewSet(viewsets.ModelViewSet):
     queryset = Attendance.objects.all().order_by('-timestamp')
     serializer_class = AttendanceSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['member__name']
 
     @action(detail=False, methods=['get'])
     def filter_by_date(self, request):
