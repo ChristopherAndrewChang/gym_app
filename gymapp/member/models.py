@@ -20,6 +20,12 @@ class MembershipType(models.Model):
 
 
 class Member(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('expired', 'Expired'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     age = models.IntegerField()

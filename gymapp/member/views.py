@@ -30,6 +30,11 @@ class MemberViewSet(viewsets.ModelViewSet):
 
         try:
             member = Member.objects.get(barcode=barcode)
+
+            # Check if the member status is expired
+            if getattr(member, 'status', '') == "expired":
+                return Response({"error": "Membership is expired!"}, status=status.HTTP_400_BAD_REQUEST)
+            
             has_attended_today = Attendance.objects.filter(
                 member=member, timestamp__date=now().date()
             ).exists()
