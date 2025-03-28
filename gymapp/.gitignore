@@ -1,0 +1,40 @@
+# General Python
+*.pyc
+*.pyo
+__pycache__/
+*.swp
+.DS_Store
+
+# Virtual Environment
+venv/
+env/
+*.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# SQLite Database
+gymapp.db
+gymapp.sqlite3
+*.sqlite3
+
+# Django Migrations
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Static and Media Files
+staticfiles/
+media/
+qr_codes/
+
+# Logs & Debug Files
+*.log
+logs/
+debug.log
+
+# VS Code & PyCharm
+.vscode/
+.idea/
+
+# Environment Variables & Secrets
+.env
+*.key
