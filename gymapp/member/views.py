@@ -77,7 +77,17 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     serializer_class = AttendanceSerializer
     pagination_class = MembersPagination
     filter_backends = [filters.SearchFilter]
+    filterset_fields = ['timestamp']
     search_fields = ['member__name']
+
+    def list(self, request, *args, **kwargs):
+        """Get all attendance with optional date filtering"""
+        date_str = request.query_params.get('date', None)  # Example: ?date=2025-03-26
+        
+        if date_str:
+            self.queryset = self.queryset.filter(timestamp__date=date_str)
+
+        return super().list(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'])
     def filter_by_date(self, request):
