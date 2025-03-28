@@ -51,11 +51,5 @@ class Attendance(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
-        if self.member.credit > 0:
-            self.member.credit -= 1
-            self.member.save()
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f"{self.member.name} - {self.timestamp}"

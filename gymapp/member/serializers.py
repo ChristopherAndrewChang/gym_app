@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MembershipType, Member
+from .models import MembershipType, Member, Attendance
 
 
 class MembershipTypeSerializer(serializers.ModelSerializer):
@@ -17,4 +17,12 @@ class MemberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Member
+        fields = '__all__'
+
+
+class AttendanceSerializer(serializers.ModelSerializer):
+    member = MemberSerializer()
+
+    class Meta:
+        model = Attendance
         fields = '__all__'
