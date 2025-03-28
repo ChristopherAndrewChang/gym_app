@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.utils.timezone import now
 from django.db.models import Q
+from rest_framework.pagination import PageNumberPagination
 
 from .models import MembershipType, Member, Attendance
 from .serializers import MembershipTypeSerializer, MemberSerializer, AttendanceSerializer
@@ -20,7 +21,7 @@ class MemberViewSet(viewsets.ModelViewSet):
     serializer_class = MemberSerializer
     pagination_class = MembersPagination
     filter_backends = [filters.SearchFilter]
-    search_fields = ['name', 'phone_number', 'email']
+    search_fields = ['name', 'phone_number', 'email', 'status']
 
     @action(detail=False, methods=['post'])
     def scan_attendance(self, request):
@@ -74,17 +75,25 @@ class MemberViewSet(viewsets.ModelViewSet):
 class AttendanceViewSet(viewsets.ModelViewSet):
     queryset = Attendance.objects.all().order_by('-timestamp')
     serializer_class = AttendanceSerializer
+    pagination_class = MembersPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['member__name']
 
     @action(detail=False, methods=['get'])
     def filter_by_date(self, request):
-        """Filter attendance records by date (YYYY-MM-DD)"""
+        """Filter attendance records by date (YYYY-MM-DD) with pagination"""
         date_str = request.query_params.get('date', None)  # Example: ?date=2025-03-26
+
         if date_str:
             filtered_attendance = Attendance.objects.filter(timestamp__date=date_str).order_by('-timestamp')
         else:
             filtered_attendance = Attendance.objects.all().order_by('-timestamp')
 
-        serializer = AttendanceSerializer(filtered_attendance, many=True)
+        # Apply DRF pagination manually
+        page = self.paginate_queryset(filtered_attendance)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(filtered_attendance, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
