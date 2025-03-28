@@ -66,8 +66,15 @@ class MemberViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def low_credit_members(self, request):
-        """Fetch members with 2 or fewer session credits left"""
-        filtered_members = Member.objects.filter(credit__lte=2)  # Filter members with credit ≤ 2
+        """Fetch members with 2 or fewer session credits left (Paginated)"""
+        filtered_members = Member.objects.filter(credit__lte=2).order_by('-credit')  # Sort by credit for better display
+
+        # Apply DRF pagination manually
+        page = self.paginate_queryset(filtered_members)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
         serializer = self.get_serializer(filtered_members, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
         
