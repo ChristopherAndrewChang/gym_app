@@ -25,3 +25,4 @@ setuptools==78.1.0
 six==1.17.0
 sqlparse==0.5.3
 urllib3==2.3.0
+django-cors-headers==4.3.1
